@@ -26,6 +26,7 @@ public class DatabaseTestController {
         this.dataSource = dataSource;
     }
 
+    
     @Get("/connection")
     @Transactional
     public HttpResponse<?> testConnection() {
