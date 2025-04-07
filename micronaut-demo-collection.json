@@ -1,0 +1,208 @@
+{
+  "info": {
+    "_postman_id": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+    "name": "Micronaut Demo API",
+    "description": "Colección para probar la API de Micronaut Demo en entorno local",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Usuarios",
+      "description": "Endpoints para gestión de usuarios",
+      "item": [
+        {
+          "name": "Listar todos los usuarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/usuarios",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["usuarios"]
+            },
+            "description": "Obtiene la lista completa de usuarios"
+          }
+        },
+        {
+          "name": "Listar usuarios activos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/usuarios/activos",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["usuarios", "activos"]
+            },
+            "description": "Obtiene la lista de usuarios activos"
+          }
+        },
+        {
+          "name": "Buscar usuario por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/usuarios/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["usuarios", "1"]
+            },
+            "description": "Busca un usuario por su ID"
+          }
+        },
+        {
+          "name": "Buscar usuario por nombre de usuario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/usuarios/usuario/johndoe",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["usuarios", "usuario", "johndoe"]
+            },
+            "description": "Busca un usuario por su nombre de usuario"
+          }
+        },
+        {
+          "name": "Buscar usuarios por nombre",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/usuarios/buscar?nombre=Juan",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["usuarios", "buscar"],
+              "query": [
+                {
+                  "key": "nombre",
+                  "value": "Juan"
+                }
+              ]
+            },
+            "description": "Busca usuarios que coincidan con el nombre proporcionado"
+          }
+        },
+        {
+          "name": "Buscar usuarios por gerencia",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/usuarios/gerencia/IT",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["usuarios", "gerencia", "IT"]
+            },
+            "description": "Busca usuarios por gerencia"
+          }
+        },
+        {
+          "name": "Buscar usuarios por tipo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/usuarios/tipo/admin",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["usuarios", "tipo", "admin"]
+            },
+            "description": "Busca usuarios por tipo"
+          }
+        },
+        {
+          "name": "Listar verificadores de asignaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/usuarios/verificadores",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["usuarios", "verificadores"]
+            },
+            "description": "Obtiene la lista de usuarios verificadores de asignaciones"
+          }
+        },
+        {
+          "name": "Listar cobradores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/usuarios/cobradores",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["usuarios", "cobradores"]
+            },
+            "description": "Obtiene la lista de usuarios cobradores"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Test Base de Datos",
+      "description": "Endpoints para probar la conexión a la base de datos",
+      "item": [
+        {
+          "name": "Probar conexión a la BD",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/test-db/connection",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["test-db", "connection"]
+            },
+            "description": "Prueba la conexión a la base de datos"
+          }
+        },
+        {
+          "name": "Listar tablas de la BD",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/test-db/tables",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["test-db", "tables"]
+            },
+            "description": "Lista todas las tablas en la base de datos"
+          }
+        },
+        {
+          "name": "Verificar tabla usuarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/test-db/check-usuarios",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["test-db", "check-usuarios"]
+            },
+            "description": "Verifica la estructura y datos de la tabla usuarios"
+          }
+        }
+      ]
+    }
+  ]
+} 
