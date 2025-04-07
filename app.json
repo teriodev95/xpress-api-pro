@@ -1,0 +1,19 @@
+{
+  "name": "micronaut-app",
+  "description": "Micronaut Demo Application",
+  "env": {
+    "MICRONAUT_ENVIRONMENTS": {
+      "description": "Environment for the Micronaut application",
+      "value": "prod"
+    },
+    "JAVA_OPTS": {
+      "description": "Java options for the application",
+      "value": "-Xmx512m"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/java"
+    }
+  ]
+} 
