@@ -45,64 +45,64 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R ./jar
         
+      # Debugging step para verificar el estado de la clave SSH
+      - name: Debug SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa_debug
+          chmod 600 ~/.ssh/id_rsa_debug
+          # Verificamos que la clave comience con la línea correcta
+          echo "Primeras líneas de la clave (sin mostrar contenido sensible):"
+          head -n 1 ~/.ssh/id_rsa_debug | grep -c "BEGIN" || echo "ERROR: La clave no tiene el formato correcto"
+          rm ~/.ssh/id_rsa_debug
+          
       # Configurar la clave SSH
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
+          # Asegurarse de que la clave tenga el formato correcto
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
         
-      # Conexión SSH al servidor y despliegue
+      # Conexión SSH al servidor y despliegue - usando otra acción para probar
       - name: Deploy to server
-        uses: appleboy/ssh-action@master
+        uses: shimataro/ssh-key-action@v2
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SERVER_PORT }}
-          script: |
-            mkdir -p ~/deployments/micronaut-demo
-            rm -f ~/deployments/micronaut-demo/*.jar
+          known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+          name: id_rsa
+          if_key_exists: replace
+          
+      - name: Create directory on server
+        run: ssh -i ~/.ssh/id_rsa ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} -p ${{ secrets.SERVER_PORT }} "mkdir -p ~/deployments/micronaut-demo && rm -f ~/deployments/micronaut-demo/*.jar"
       
       # Transferencia de archivos al servidor
       - name: Copy JAR to server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SERVER_PORT }}
-          source: "jar/*.jar"
-          target: "~/deployments/micronaut-demo"
-          strip_components: 1
+        run: scp -i ~/.ssh/id_rsa -P ${{ secrets.SERVER_PORT }} jar/*.jar ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:~/deployments/micronaut-demo/
           
       # Reinicio del servicio en el servidor
       - name: Restart service
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SERVER_PORT }}
-          script: |
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} -p ${{ secrets.SERVER_PORT }} "
             cd ~/deployments/micronaut-demo
-            JAR_FILE=$(ls -t *.jar | head -1)
-            echo "Deploying $JAR_FILE"
+            JAR_FILE=\$(ls -t *.jar | head -1)
+            echo \"Deploying \$JAR_FILE\"
             # Detener el servicio existente si está en ejecución
-            if pgrep -f "java -jar"; then
-              pkill -f "java -jar"
-              echo "Previous service stopped"
+            if pgrep -f \"java -jar\"; then
+              pkill -f \"java -jar\"
+              echo \"Previous service stopped\"
             fi
             # Iniciar el nuevo servicio
-            nohup java -jar $JAR_FILE > micronaut-app.log 2>&1 &
-            echo "New service started"
+            nohup java -jar \$JAR_FILE > micronaut-app.log 2>&1 &
+            echo \"New service started\"
             sleep 5
             # Verificar que el servicio esté en ejecución
-            if pgrep -f "java -jar"; then
-              echo "Service running successfully"
+            if pgrep -f \"java -jar\"; then
+              echo \"Service running successfully\"
             else
-              echo "Failed to start service"
+              echo \"Failed to start service\"
               exit 1
-            fi 
+            fi
+          " 
