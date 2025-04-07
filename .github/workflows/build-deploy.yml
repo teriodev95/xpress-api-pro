@@ -1,0 +1,99 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Permite ejecutar el flujo manualmente desde la interfaz de GitHub
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+          
+      - name: Build with Maven
+        run: ./mvnw clean package -DskipTests
+        
+      - name: Test with Maven
+        run: ./mvnw test
+        
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: micronaut-jar
+          path: target/*.jar
+          
+  deploy:
+    needs: build  # Este trabajo se ejecuta después de que 'build' se complete exitosamente
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: micronaut-jar
+          path: ./jar
+          
+      - name: Display structure of downloaded files
+        run: ls -R ./jar
+        
+      # Conexión SSH al servidor y despliegue
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            mkdir -p ~/deployments/micronaut-demo
+            rm -f ~/deployments/micronaut-demo/*.jar
+      
+      # Transferencia de archivos al servidor
+      - name: Copy JAR to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: "jar/*.jar"
+          target: "~/deployments/micronaut-demo"
+          strip_components: 1
+          
+      # Reinicio del servicio en el servidor
+      - name: Restart service
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            cd ~/deployments/micronaut-demo
+            JAR_FILE=$(ls -t *.jar | head -1)
+            echo "Deploying $JAR_FILE"
+            # Detener el servicio existente si está en ejecución
+            if pgrep -f "java -jar"; then
+              pkill -f "java -jar"
+              echo "Previous service stopped"
+            fi
+            # Iniciar el nuevo servicio
+            nohup java -jar $JAR_FILE > micronaut-app.log 2>&1 &
+            echo "New service started"
+            sleep 5
+            # Verificar que el servicio esté en ejecución
+            if pgrep -f "java -jar"; then
+              echo "Service running successfully"
+            else
+              echo "Failed to start service"
+              exit 1
+            fi 
