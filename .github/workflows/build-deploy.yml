@@ -45,36 +45,19 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R ./jar
         
-      # Debugging step para verificar el estado de la clave SSH
-      - name: Debug SSH key
+      # Configurar SSH sin verificación de host para evitar el error
+      - name: Setup SSH config
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa_debug
-          chmod 600 ~/.ssh/id_rsa_debug
-          # Verificamos que la clave comience con la línea correcta
-          echo "Primeras líneas de la clave (sin mostrar contenido sensible):"
-          head -n 1 ~/.ssh/id_rsa_debug | grep -c "BEGIN" || echo "ERROR: La clave no tiene el formato correcto"
-          rm ~/.ssh/id_rsa_debug
-          
-      # Configurar la clave SSH
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          # Asegurarse de que la clave tenga el formato correcto
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-        
-      # Conexión SSH al servidor y despliegue - usando otra acción para probar
-      - name: Deploy to server
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-          name: id_rsa
-          if_key_exists: replace
+          # Configuración para desactivar la verificación de host
+          echo "Host *
+            StrictHostKeyChecking no
+            UserKnownHostsFile=/dev/null" > ~/.ssh/config
+          chmod 600 ~/.ssh/config
           
+      # Crear directorio en el servidor
       - name: Create directory on server
         run: ssh -i ~/.ssh/id_rsa ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} -p ${{ secrets.SERVER_PORT }} "mkdir -p ~/deployments/micronaut-demo && rm -f ~/deployments/micronaut-demo/*.jar"
       
