@@ -15,7 +15,7 @@ Proyecto de demostración utilizando Micronaut para la creación de una API REST
 
 ## Configuración de Despliegue Automatizado
 
-Este proyecto utiliza GitHub Actions para automatizar el proceso de compilación y despliegue en un servidor remoto.
+Este proyecto utiliza GitHub Actions para automatizar el proceso de compilación y despliegue en un servidor remoto, utilizando autenticación SSH con clave privada para mayor seguridad.
 
 ### Requisitos
 
@@ -23,7 +23,29 @@ Este proyecto utiliza GitHub Actions para automatizar el proceso de compilación
    - `SERVER_HOST`: Dirección IP o nombre de dominio del servidor
    - `SERVER_PORT`: Puerto SSH del servidor (normalmente 22)
    - `SERVER_USERNAME`: Usuario SSH del servidor
-   - `SERVER_PASSWORD`: Contraseña SSH del servidor
+   - `SSH_PRIVATE_KEY`: Clave privada SSH para autenticación (generar con `ssh-keygen -t rsa -b 4096`)
+   - `SSH_KNOWN_HOSTS`: Contenido del archivo known_hosts para validar el servidor (generar con `ssh-keyscan -H tu-servidor >> ~/.ssh/known_hosts`)
+
+### Proceso para configurar la autenticación SSH
+
+1. Generar un par de claves SSH en tu máquina local:
+   ```bash
+   ssh-keygen -t rsa -b 4096 -f ~/.ssh/deploy_key -N ""
+   ```
+
+2. Agregar la clave pública al servidor:
+   ```bash
+   ssh-copy-id -i ~/.ssh/deploy_key.pub usuario@tu-servidor
+   ```
+
+3. Obtener la huella del servidor para el archivo known_hosts:
+   ```bash
+   ssh-keyscan -H tu-servidor >> known_hosts
+   ```
+
+4. Agregar como secretos en GitHub:
+   - `SSH_PRIVATE_KEY`: El contenido del archivo `~/.ssh/deploy_key`
+   - `SSH_KNOWN_HOSTS`: El contenido del archivo `known_hosts`
 
 ### Proceso de Despliegue
 
@@ -32,9 +54,10 @@ El flujo de trabajo realiza los siguientes pasos:
 1. Compila la aplicación con Maven
 2. Ejecuta pruebas automatizadas
 3. Sube el archivo JAR como un artefacto
-4. Se conecta al servidor remoto mediante SSH
-5. Transfiere el archivo JAR al servidor
-6. Reinicia el servicio en el servidor
+4. Configura la clave SSH para conexión segura
+5. Se conecta a tu servidor mediante SSH con autenticación por clave
+6. Transfiere el archivo JAR al servidor
+7. Reinicia el servicio en el servidor
 
 ### Despliegue Manual
 
